@@ -1,4 +1,4 @@
-
+<!DOCTYPE html>
 <html lang="ku" dir="rtl">
 <head>
 <meta charset="UTF-8">
@@ -31,7 +31,7 @@ button{width:100%;padding:15px;border:none;border-radius:8px;background:#16a34a;
 
 <div class="field">
 <label>پارەی هەبوو (IQD)</label>
-<input type="number" id="money" placeholder="0">
+<input type="number" id="money" placeholder="3,000,000">
 </div>
 
 <div class="field">
@@ -60,7 +60,6 @@ let goldPriceIQD = 100000;
 let silverPriceIQD = 1200;
 let usdRate = 1500;
 
-/* هێنانی نرخە زنده */
 async function loadPrices(){
 try{
   /* زێر */
@@ -80,7 +79,6 @@ try{
   let usdData = await usdRes.json();
   usdRate = usdData.rates.IQD;
 
-  /* نرخ IQD */
   goldPriceIQD = goldUSDperGram * usdRate;
   silverPriceIQD = silverUSDperGram * usdRate;
 
@@ -94,12 +92,11 @@ try{
 }
 }
 
-/* خۆکار نوێ دەکرێت هەر 10 دقیقە */
 loadPrices();
 setInterval(loadPrices,10*60*1000);
 
 function calc(){
-let money = parseFloat(document.getElementById("money").value)||0;
+let money = parseFloat(document.getElementById("money").value.replace(/,/g,""))||0;
 let gold = parseFloat(document.getElementById("gold").value)||0;
 let silver = parseFloat(document.getElementById("silver").value)||0;
 let usd = parseFloat(document.getElementById("usd").value)||0;
@@ -107,8 +104,9 @@ let usd = parseFloat(document.getElementById("usd").value)||0;
 let usdIQD = usd * usdRate;
 let total = money + (gold*goldPriceIQD) + (silver*silverPriceIQD) + usdIQD;
 
-/* نیصاب = 30,000,000 IQD */
-let nisab = 30000000;
+/* نیصاب = 3,000,000 IQD */
+let nisab = 3000000;
+/* زەکات = 2.5٪ */
 let zakat = total * 0.025;
 
 let r = document.getElementById("result");
