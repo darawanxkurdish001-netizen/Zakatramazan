@@ -7,8 +7,8 @@
 
 <style>
 body{margin:0;font-family:"Noto Sans Arabic",sans-serif;background:#f3f4f6;color:#111827}
-.wrapper{max-width:520px;margin:auto;padding:24px 16px 40px}
-.title{font-size:26px;font-weight:700;margin-bottom:8px}
+.wrapper{max-width:540px;margin:auto;padding:24px 16px 40px}
+.title{font-size:28px;font-weight:700;margin-bottom:10px}
 .desc{font-size:15px;color:#4b5563;line-height:1.7;margin-bottom:18px}
 .prices{background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:12px 14px;font-size:14px;margin-bottom:18px;line-height:1.7}
 .field{margin-bottom:16px}
@@ -39,6 +39,16 @@ button{width:100%;padding:15px;border:none;border-radius:8px;background:#16a34a;
 <input type="number" id="gold" placeholder="0">
 </div>
 
+<div class="field">
+<label>زیو (گرام)</label>
+<input type="number" id="silver" placeholder="0">
+</div>
+
+<div class="field">
+<label>دۆلار (USD)</label>
+<input type="number" id="usd" placeholder="0">
+</div>
+
 <button onclick="calc()">حیسابکردن</button>
 
 <div class="result" id="result">ئەنجامی ژمێریار لێرە دەردەکەوێت</div>
@@ -47,24 +57,36 @@ button{width:100%;padding:15px;border:none;border-radius:8px;background:#16a34a;
 
 <script>
 let goldPriceIQD = 100000;
+let silverPriceIQD = 1200;
 let usdRate = 1500;
 
+/* هێنانی نرخە زنده */
 async function loadPrices(){
 try{
-  /* نرخی زێر و دۆلار لە API ـی زنده */
+  /* زێر */
   let goldRes = await fetch("https://api.metals.live/v1/spot/gold");
   let goldData = await goldRes.json();
   let goldUSDperOz = goldData[0].price;
   let goldUSDperGram = goldUSDperOz / 31.1035;
 
+  /* زیو */
+  let silverRes = await fetch("https://api.metals.live/v1/spot/silver");
+  let silverData = await silverRes.json();
+  let silverUSDperOz = silverData[0].price;
+  let silverUSDperGram = silverUSDperOz / 31.1035;
+
+  /* دۆلار */
   let usdRes = await fetch("https://open.er-api.com/v6/latest/USD");
   let usdData = await usdRes.json();
   usdRate = usdData.rates.IQD;
 
+  /* نرخ IQD */
   goldPriceIQD = goldUSDperGram * usdRate;
+  silverPriceIQD = silverUSDperGram * usdRate;
 
   document.getElementById("prices").innerHTML =
   "نرخی زێر: " + goldPriceIQD.toFixed(0) + " IQD / گرام<br>" +
+  "نرخی زیو: " + silverPriceIQD.toFixed(0) + " IQD / گرام<br>" +
   "نرخی دۆلار: " + usdRate.toFixed(0) + " IQD";
 }catch(e){
   document.getElementById("prices").innerText="نەتوانرا نرخەکان بهێنرێت";
@@ -72,16 +94,21 @@ try{
 }
 }
 
-/* هەموو 24 کاتژمێر نرخەکان نوێ دەکرێن */
+/* خۆکار نوێ دەکرێت هەر 10 دقیقە */
 loadPrices();
-setInterval(loadPrices, 24*60*60*1000); 
+setInterval(loadPrices,10*60*1000);
 
 function calc(){
 let money = parseFloat(document.getElementById("money").value)||0;
 let gold = parseFloat(document.getElementById("gold").value)||0;
+let silver = parseFloat(document.getElementById("silver").value)||0;
+let usd = parseFloat(document.getElementById("usd").value)||0;
 
-let nisab = 85 * goldPriceIQD;
-let total = money + (gold*goldPriceIQD);
+let usdIQD = usd * usdRate;
+let total = money + (gold*goldPriceIQD) + (silver*silverPriceIQD) + usdIQD;
+
+/* نیصاب = 30,000,000 IQD */
+let nisab = 30000000;
 let zakat = total * 0.025;
 
 let r = document.getElementById("result");
