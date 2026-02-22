@@ -1,4 +1,4 @@
-                    زەکات
+                    
 <html lang="ku" dir="rtl">
 <head>
 <meta charset="UTF-8">
