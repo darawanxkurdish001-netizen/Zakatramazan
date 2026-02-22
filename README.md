@@ -24,28 +24,28 @@ input{width:100%;padding:14px;border-radius:8px;border:1px solid #d1d5db;font-si
 
 <div class="wrapper">
 <div class="title">ژمێریاری زەکات</div>
-<div class="desc">خانەکان پڕکردن نیازی نیە، ژمارەکان خۆکار زیاد دەکرێن و زەکات یاد دەکرێت.</div>
+<div class="desc">ئەگەر ژمارەکان نووسرا نەبن، خۆکار زیاد دەبن و زەکات یاد دەکرێت.</div>
 
 <div class="prices" id="prices">هێنانی نرخەکان...</div>
 
 <div class="field">
 <label>پارەی هەبوو (IQD)</label>
-<input type="number" id="money" placeholder="3,000,000" value="3000000">
+<input type="number" id="money" placeholder="3,000,000">
 </div>
 
 <div class="field">
 <label>زێر (گرام)</label>
-<input type="number" id="gold" placeholder="0" value="0">
+<input type="number" id="gold" placeholder="0">
 </div>
 
 <div class="field">
 <label>زیو (گرام)</label>
-<input type="number" id="silver" placeholder="0" value="0">
+<input type="number" id="silver" placeholder="0">
 </div>
 
 <div class="field">
 <label>دۆلار (USD)</label>
-<input type="number" id="usd" placeholder="0" value="0">
+<input type="number" id="usd" placeholder="0">
 </div>
 
 <div class="result" id="result">ئەنجامی ژمێریار لێرە دەردەکەوێت</div>
@@ -57,24 +57,20 @@ let goldPriceIQD = 100000;
 let silverPriceIQD = 1200;
 let usdRate = 1500;
 
+/* هێنانی نرخەکان live */
 async function loadPrices(){
 try{
   let goldRes = await fetch("https://api.metals.live/v1/spot/gold");
   let goldData = await goldRes.json();
-  let goldUSDperOz = goldData[0].price;
-  let goldUSDperGram = goldUSDperOz / 31.1035;
+  goldPriceIQD = (goldData[0].price / 31.1035) * usdRate;
 
   let silverRes = await fetch("https://api.metals.live/v1/spot/silver");
   let silverData = await silverRes.json();
-  let silverUSDperOz = silverData[0].price;
-  let silverUSDperGram = silverUSDperOz / 31.1035;
+  silverPriceIQD = (silverData[0].price / 31.1035) * usdRate;
 
   let usdRes = await fetch("https://open.er-api.com/v6/latest/USD");
   let usdData = await usdRes.json();
   usdRate = usdData.rates.IQD;
-
-  goldPriceIQD = goldUSDperGram * usdRate;
-  silverPriceIQD = silverUSDperGram * usdRate;
 
   document.getElementById("prices").innerHTML =
   "نرخی زێر: " + goldPriceIQD.toFixed(0) + " IQD / گرام<br>" +
@@ -93,10 +89,16 @@ loadPrices();
 setInterval(loadPrices,10*60*1000);
 
 function autoCalc(){
-  let money = parseFloat(document.getElementById("money").value.replace(/,/g,""))||0;
-  let gold = parseFloat(document.getElementById("gold").value)||0;
-  let silver = parseFloat(document.getElementById("silver").value)||0;
-  let usd = parseFloat(document.getElementById("usd").value)||0;
+  let money = document.getElementById("money").value;
+  let gold = document.getElementById("gold").value;
+  let silver = document.getElementById("silver").value;
+  let usd = document.getElementById("usd").value;
+
+  /* ئەگەر خالی بوو، placeholder زیاد دەکرێت */
+  money = money ? parseFloat(money.replace(/,/g,"")) : 3000000;
+  gold = gold ? parseFloat(gold) : 0;
+  silver = silver ? parseFloat(silver) : 0;
+  usd = usd ? parseFloat(usd) : 0;
 
   let usdIQD = usd * usdRate;
   let total = money + (gold*goldPriceIQD) + (silver*silverPriceIQD) + usdIQD;
@@ -118,12 +120,12 @@ function autoCalc(){
   }
 }
 
-/* هەرکات ژمارەکان نوسرابن، خۆکار حیساب بکات */
+/* خۆکار زیادکردن placeholder + value لە load + input */
 ["money","gold","silver","usd"].forEach(id=>{
-  document.getElementById(id).addEventListener("input",autoCalc);
+  const el = document.getElementById(id);
+  el.addEventListener("input", autoCalc);
 });
 
-/* خۆکار زیادکردن placeholder و value لەکاتێک داخڵ دەبێت */
 window.addEventListener("load", autoCalc);
 
 </script>
