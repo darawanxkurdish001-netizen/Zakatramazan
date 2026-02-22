@@ -14,7 +14,6 @@ body{margin:0;font-family:"Noto Sans Arabic",sans-serif;background:#f3f4f6;color
 .field{margin-bottom:16px}
 label{display:block;margin-bottom:6px;font-size:14px;color:#374151}
 input{width:100%;padding:14px;border-radius:8px;border:1px solid #d1d5db;font-size:16px;text-align:right}
-button{width:100%;padding:15px;border:none;border-radius:8px;background:#16a34a;color:white;font-size:18px;font-weight:600;margin-top:8px}
 .result{margin-top:22px;padding:16px;border-radius:10px;background:white;border:1px solid #e5e7eb;line-height:1.8;font-size:16px;text-align:right}
 .ok{color:#16a34a;font-weight:600}
 .no{color:#dc2626;font-weight:600}
@@ -25,28 +24,28 @@ button{width:100%;padding:15px;border:none;border-radius:8px;background:#16a34a;
 
 <div class="wrapper">
 <div class="title">ژمێریاری زەکات</div>
-<div class="desc">ژمارەکانت لە خانەکان بنووسە، زەکات خۆکار حیساب دەکرێت.</div>
+<div class="desc">خانەکان پڕکردن نیازی نیە، ژمارەکان خۆکار زیاد دەکرێن و زەکات یاد دەکرێت.</div>
 
 <div class="prices" id="prices">هێنانی نرخەکان...</div>
 
 <div class="field">
 <label>پارەی هەبوو (IQD)</label>
-<input type="number" id="money" placeholder="3,000,000">
+<input type="number" id="money" placeholder="3,000,000" value="3000000">
 </div>
 
 <div class="field">
 <label>زێر (گرام)</label>
-<input type="number" id="gold" placeholder="0">
+<input type="number" id="gold" placeholder="0" value="0">
 </div>
 
 <div class="field">
 <label>زیو (گرام)</label>
-<input type="number" id="silver" placeholder="0">
+<input type="number" id="silver" placeholder="0" value="0">
 </div>
 
 <div class="field">
 <label>دۆلار (USD)</label>
-<input type="number" id="usd" placeholder="0">
+<input type="number" id="usd" placeholder="0" value="0">
 </div>
 
 <div class="result" id="result">ئەنجامی ژمێریار لێرە دەردەکەوێت</div>
@@ -58,7 +57,6 @@ let goldPriceIQD = 100000;
 let silverPriceIQD = 1200;
 let usdRate = 1500;
 
-/* هێنانی نرخەکان live */
 async function loadPrices(){
 try{
   let goldRes = await fetch("https://api.metals.live/v1/spot/gold");
@@ -82,8 +80,7 @@ try{
   "نرخی زێر: " + goldPriceIQD.toFixed(0) + " IQD / گرام<br>" +
   "نرخی زیو: " + silverPriceIQD.toFixed(0) + " IQD / گرام<br>" +
   "نرخی دۆلار: " + usdRate.toFixed(0) + " IQD";
-  
-  /* هەموو ژمارەکان خۆکار حیساب بکەن */
+
   autoCalc();
 
 }catch(e){
@@ -92,11 +89,9 @@ try{
 }
 }
 
-/* نوێکردنەوە هەر 10 دقیقە */
 loadPrices();
 setInterval(loadPrices,10*60*1000);
 
-/* خۆکار حیسابکردن */
 function autoCalc(){
   let money = parseFloat(document.getElementById("money").value.replace(/,/g,""))||0;
   let gold = parseFloat(document.getElementById("gold").value)||0;
@@ -124,10 +119,12 @@ function autoCalc(){
 }
 
 /* هەرکات ژمارەکان نوسرابن، خۆکار حیساب بکات */
-document.getElementById("money").addEventListener("input",autoCalc);
-document.getElementById("gold").addEventListener("input",autoCalc);
-document.getElementById("silver").addEventListener("input",autoCalc);
-document.getElementById("usd").addEventListener("input",autoCalc);
+["money","gold","silver","usd"].forEach(id=>{
+  document.getElementById(id).addEventListener("input",autoCalc);
+});
+
+/* خۆکار زیادکردن placeholder و value لەکاتێک داخڵ دەبێت */
+window.addEventListener("load", autoCalc);
 
 </script>
 
