@@ -1,108 +1,116 @@
-# vip-crypto-signals-bot
-import telebot
-import requests
-import pandas as pd
-import ta
-import threading
-import time
-import random
-from datetime import datetime
 
-TOKEN = "8542082295:AAEZJMhyUojouhyIyUy6QyaZTh-4W5wbf3U"
-ADMIN_ID = 768442747
+<html lang="ku">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Daro.dev | ژمێریاری زەکات</title>
 
-bot = telebot.TeleBot(TOKEN)
+<style>
+body{
+font-family: "Noto Sans Arabic", sans-serif;
+background: linear-gradient(135deg,#0f172a,#1e293b);
+color:white;
+margin:0;
+padding:0;
+display:flex;
+align-items:center;
+justify-content:center;
+height:100vh;
+}
 
-vip_users = set()
+.card{
+background:#111827;
+padding:30px;
+border-radius:16px;
+width:95%;
+max-width:420px;
+box-shadow:0 10px 25px rgba(0,0,0,0.4);
+text-align:center;
+}
 
-BIG_COINS = ["BTCUSDT","ETHUSDT","BNBUSDT","SOLUSDT"]
-SMALL_COINS = ["XRPUSDT","ADAUSDT","DOGEUSDT","TRXUSDT","MATICUSDT","SHIBUSDT"]
+.logo{
+font-size:26px;
+font-weight:bold;
+margin-bottom:5px;
+color:#22c55e;
+}
 
-SIGNAL_HOURS = [19,20,21,22,23]
+.subtitle{
+font-size:14px;
+opacity:0.8;
+margin-bottom:20px;
+}
 
-def get_price(symbol):
-    url=f"https://api.binance.com/api/v3/ticker/price?symbol={symbol}"
-    return float(requests.get(url).json()["price"])
+input{
+width:100%;
+padding:14px;
+margin:8px 0;
+border-radius:10px;
+border:none;
+font-size:16px;
+}
 
-def get_klines(symbol):
-    url=f"https://api.binance.com/api/v3/klines?symbol={symbol}&interval=1h&limit=100"
-    data=requests.get(url).json()
-    closes=[float(c[4]) for c in data]
-    return pd.DataFrame(closes,columns=["close"])
+button{
+width:100%;
+padding:14px;
+margin-top:12px;
+border:none;
+border-radius:10px;
+background:#22c55e;
+color:#022c22;
+font-size:18px;
+font-weight:bold;
+}
 
-def choose_symbol():
-    coins=BIG_COINS+SMALL_COINS
-    random.shuffle(coins)
-    for c in coins:
-        price=get_price(c)
-        if c in SMALL_COINS and price>10:
-            continue
-        return c
-    return random.choice(BIG_COINS)
+.result{
+margin-top:18px;
+font-size:22px;
+font-weight:bold;
+color:#4ade80;
+}
 
-def generate_signal():
-    symbol=choose_symbol()
-    df=get_klines(symbol)
+.footer{
+margin-top:15px;
+font-size:12px;
+opacity:0.6;
+}
+</style>
+</head>
 
-    rsi=ta.momentum.RSIIndicator(df["close"],window=14).rsi().iloc[-1]
-    price=df["close"].iloc[-1]
+<body>
 
-    if rsi<30:
-        side="BUY"
-        tp=price*1.03
-        sl=price*0.97
-    elif rsi>70:
-        side="SELL"
-        tp=price*0.97
-        sl=price*1.03
-    else:
-        return None
+<div class="card">
+<div class="logo">Daro.dev</div>
+<div class="subtitle">ژمێریاری زەکات</div>
 
-    return (
-        f"📊 VIP CRYPTO SIGNAL\n\n"
-        f"Pair: {symbol}\n"
-        f"Type: {side}\n"
-        f"Price: {price:.4f}\n"
-        f"TP: {tp:.4f}\n"
-        f"SL: {sl:.4f}\n"
-        f"RSI: {rsi:.1f}\n"
-        f"Time: {datetime.now().strftime('%H:%M')}"
-    )
+<input type="number" id="money" placeholder="کۆی پارە (IQD)">
+<input type="number" id="gold" placeholder="بڕی ئاڵتوون (گرام)">
+<input type="number" id="silver" placeholder="بڕی زیو (گرام)">
 
-def scheduler():
-    sent_today=set()
-    while True:
-        now=datetime.now()
-        h=now.hour
+<button onclick="calc()">ئەژمارکردن</button>
 
-        if h in SIGNAL_HOURS and h not in sent_today:
-            signal=generate_signal()
-            if signal:
-                for uid in vip_users:
-                    try:
-                        bot.send_message(uid,signal)
-                    except:
-                        pass
-            sent_today.add(h)
+<div class="result" id="result">زەکات: 0 IQD</div>
 
-        if h==0:
-            sent_today.clear()
+<div class="footer">© Daro.dev</div>
+</div>
 
-        time.sleep(60)
+<script>
+function calc(){
+let money = parseFloat(document.getElementById("money").value)||0;
+let gold = parseFloat(document.getElementById("gold").value)||0;
+let silver = parseFloat(document.getElementById("silver").value)||0;
 
-@bot.message_handler(commands=['start'])
-def start(msg):
-    bot.send_message(msg.chat.id,"📈 VIP Crypto Signals Bot\n/send me your payment to join VIP")
+// نرخەکان (دەتوانیت بگۆڕیت)
+let goldPrice = 100000; 
+let silverPrice = 1200;
 
-@bot.message_handler(commands=['vip'])
-def add_vip(msg):
-    if msg.from_user.id==ADMIN_ID:
-        try:
-            uid=int(msg.text.split()[1])
-            vip_users.add(uid)
-            bot.send_message(uid,"✅ VIP Activated")
-        except:
-            bot.reply_to(msg,"/vip 123456")
+let total = money + (gold*goldPrice) + (silver*silverPrice);
+let zakat = total * 0.025;
 
-threading.Thread(target=scheduler).start()
-bot.infinity_polling()
+document.getElementById("result").innerText =
+"زەکات: " + zakat.toLocaleString() + " IQD";
+}
+</script>
+
+</body>
+</html>
